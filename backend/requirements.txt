@@ -1,6 +1,6 @@
 fastapi
 uvicorn
 sqlalchemy
-asyncpg
 pydantic
 python-dotenv
+psycopg[binary]
