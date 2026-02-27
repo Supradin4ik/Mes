@@ -10,7 +10,9 @@ export default function UploadModal({ isOpen, onClose, onSubmit, isLoading }) {
     event.preventDefault();
     if (!projectName.trim() || !file) return;
 
-    await onSubmit(file, projectName.trim());
+    const isSuccess = await onSubmit(file, projectName.trim());
+    if (!isSuccess) return;
+
     setProjectName('');
     setFile(null);
   };
