@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
 import {
   fetchProjects,
   getProjectStats,
@@ -60,10 +61,21 @@ export default function App() {
 
   const handleUpload = async (file, projectName) => {
     try {
+      setError('');
       setIsUploading(true);
       await uploadExcel(file, projectName);
       setUploadOpen(false);
       await loadProjects();
+      return true;
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.code === 'ECONNABORTED') {
+        setError('Загрузка заняла слишком много времени. Попробуйте файл поменьше или повторите попытку.');
+      } else if (axios.isAxiosError(err) && err.response?.data?.detail) {
+        setError(`Ошибка загрузки: ${err.response.data.detail}`);
+      } else {
+        setError('Не удалось загрузить спецификацию. Проверьте доступность API и формат файла.');
+      }
+      return false;
     } finally {
       setIsUploading(false);
     }
