@@ -32,8 +32,6 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-origins = ["*"]  # Разрешаем запросы из любого источника (для теста)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
