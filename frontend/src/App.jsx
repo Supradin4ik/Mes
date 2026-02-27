@@ -10,10 +10,10 @@ import UploadModal from './components/UploadModal';
 
 function ProgressBar({ value }) {
   return (
-    <div className="w-56">
-      <div className="mb-1 text-right text-sm font-medium text-slate-600">{value}%</div>
-      <div className="h-4 overflow-hidden rounded-full bg-slate-200">
-        <div className="h-4 rounded-full bg-emerald-500" style={{ width: `${value}%` }} />
+    <div className="w-48">
+      <div className="mb-1 text-right text-xs font-medium text-slate-500">{value}%</div>
+      <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+        <div className="h-2.5 rounded-full bg-emerald-500" style={{ width: `${value}%` }} />
       </div>
     </div>
   );
@@ -96,40 +96,40 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-100 p-8 text-slate-900">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-slate-200 p-10 text-slate-900">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold">Dashboard заказов</h1>
+          <h1 className="text-5xl font-bold tracking-tight text-slate-900">Панель управления заказами</h1>
           <button
             onClick={() => setUploadOpen(true)}
-            className="rounded-lg bg-blue-600 px-6 py-3 text-lg font-semibold text-white hover:bg-blue-700"
+            className="rounded-xl bg-blue-600 px-10 py-4 text-3xl font-semibold text-white shadow-sm transition hover:bg-blue-700"
           >
             + Загрузить Excel
           </button>
         </div>
 
-        {error && <div className="mb-4 rounded-lg bg-red-100 px-4 py-3 text-red-700">{error}</div>}
+        {error && <div className="mb-5 rounded-xl bg-red-100 px-6 py-4 text-2xl text-red-700">{error}</div>}
 
-        <div className="overflow-x-auto rounded-xl bg-white shadow">
+        <div className="overflow-x-auto rounded-2xl bg-white shadow">
           <table className="min-w-full text-left">
-            <thead className="bg-slate-50 text-sm uppercase tracking-wide text-slate-500">
+            <thead className="bg-slate-100 text-lg uppercase tracking-wide text-slate-600">
               <tr>
-                <th className="px-6 py-4">Название</th>
-                <th className="px-6 py-4">Статус</th>
-                <th className="px-6 py-4">Готовность</th>
-                <th className="px-6 py-4">Действия</th>
+                <th className="px-6 py-5">Источник</th>
+                <th className="px-6 py-5">Туалет</th>
+                <th className="px-6 py-5">Готовность</th>
+                <th className="px-6 py-5">Лёд</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td className="px-6 py-8 text-lg text-slate-500" colSpan={4}>
+                  <td className="px-6 py-12 text-2xl text-slate-500" colSpan={4}>
                     Загрузка...
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td className="px-6 py-8 text-lg text-slate-500" colSpan={4}>
+                  <td className="px-6 py-12 text-2xl text-slate-500" colSpan={4}>
                     Проекты пока не найдены
                   </td>
                 </tr>
@@ -138,8 +138,8 @@ export default function App() {
                   const isPaused = String(project.status).toLowerCase() === 'paused';
                   return (
                     <tr key={project.id} className="border-t border-slate-100">
-                      <td className="px-6 py-4 text-lg font-semibold">{project.name}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-5 text-xl font-semibold">{project.name}</td>
+                      <td className="px-6 py-5">
                         <span
                           className={`rounded-full px-3 py-1 text-sm font-semibold ${
                             isPaused ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
@@ -148,10 +148,10 @@ export default function App() {
                           {project.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-5">
                         <ProgressBar value={project.progress} />
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-5">
                         <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => handleToggleStatus(project)}
