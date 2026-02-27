@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, status
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,6 +31,16 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+origins = ["http://localhost:3000"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class ProductionActionRequest(BaseModel):
