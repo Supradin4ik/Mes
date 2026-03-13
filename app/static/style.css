@@ -1,172 +1,130 @@
 :root {
-  --bg: #f5f5f7;
+  --bg: #f2f2f7;
   --card-bg: #ffffff;
   --text: #1d1d1f;
-  --muted: #86868b;
+  --muted: #6e6e73;
   --border: #e5e5ea;
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --status-pending: #8e8e93;
-  --status-in-progress: #ffcc00;
-  --status-blocked: #ff3b30;
-  --status-done: #34c759;
+  --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --pending: #8e8e93;
+  --in-progress: #f4b400;
+  --done: #34c759;
+  --blocked: #ff3b30;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
+
+.page-container { width: min(1140px, calc(100% - 40px)); margin: 0 auto; }
 
 .site-header {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: 9;
+  background: rgba(242, 242, 247, 0.9);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
-  background: rgba(245, 245, 247, 0.9);
-  backdrop-filter: blur(10px);
 }
 
-.site-header h1 {
-  margin: 0;
-  padding: 20px 0;
-  font-size: 1.25rem;
-  font-weight: 650;
-}
+.header-inner { padding: 18px 0; }
+.site-header h1 { margin: 0 0 8px; font-size: 1.35rem; }
 
-.page-container {
-  width: min(1120px, calc(100% - 48px));
-  margin: 0 auto;
-}
+.top-nav { display: flex; gap: 16px; }
+.top-nav a { text-decoration: none; color: var(--muted); font-weight: 600; }
+.top-nav a.active, .top-nav a:hover { color: var(--text); }
 
-.page-content {
-  padding: 24px 0 40px;
-}
+.page-content { padding: 24px 0 48px; }
 
-.section-title {
-  margin: 0;
-  font-size: 1.3rem;
-}
+.breadcrumbs { margin-bottom: 16px; color: var(--muted); font-size: 0.9rem; }
+.breadcrumbs a { color: var(--muted); text-decoration: none; }
+.breadcrumbs .sep { margin: 0 6px; }
 
-.type-title {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--muted);
-  letter-spacing: 0.02em;
-}
+.stack-md { display: flex; flex-direction: column; gap: 18px; }
+.stack-sm { display: flex; flex-direction: column; gap: 12px; }
 
-.project-section,
-.type-section {
-  display: flex;
-  flex-direction: column;
-}
+.section-title { margin: 0; }
+.type-title { margin: 0; color: var(--muted); font-size: 1rem; }
 
-.stack-md {
-  gap: 18px;
-  margin-bottom: 24px;
-}
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 
-.stack-sm {
-  gap: 12px;
-}
-
-.batch-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 14px;
-}
-
-.batch-card {
+.ios-card {
   background: var(--card-bg);
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
+  border: 1px solid rgba(229, 229, 234, 0.65);
   padding: 14px;
-  border-left: 5px solid var(--status-pending);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.batch-card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 10px;
-}
+.batch-card-link:hover,
+.project-card:hover,
+.ios-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12); }
 
-.batch-card h4 {
-  margin: 0;
-  font-size: 1rem;
-}
+.meta-list { margin: 0; display: grid; gap: 8px; }
+.meta-list div { display: flex; justify-content: space-between; border-top: 1px solid #f0f0f2; padding-top: 8px; gap: 10px; }
+.meta-list dt { color: var(--muted); font-size: 0.86rem; }
+.meta-list dd { margin: 0; font-weight: 500; text-align: right; }
 
-.batch-meta {
-  margin: 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
+.muted-text { color: var(--muted); margin: 0 0 6px; }
 
-.batch-meta div {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  border-top: 1px solid #f0f0f2;
-  padding-top: 8px;
-}
-
-.batch-meta dt {
-  color: var(--muted);
-  font-size: 0.82rem;
-}
-
-.batch-meta dd {
-  margin: 0;
-  text-align: right;
-  font-weight: 500;
-  font-size: 0.92rem;
-}
-
-.status-badge {
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 0.75rem;
-  font-weight: 600;
+.status-pill {
   color: #fff;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
-.muted-text {
-  color: var(--muted);
+.status-pending { background: var(--pending); }
+.status-in_progress { background: var(--in-progress); color: #1d1d1f; }
+.status-done { background: var(--done); }
+.status-blocked { background: var(--blocked); }
+
+.batch-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.batch-head h4, .batch-head h5 { margin: 0; }
+
+.progress-track { background: #e9e9ed; border-radius: 999px; height: 8px; overflow: hidden; }
+.progress-track span { display: block; height: 100%; background: linear-gradient(90deg, #66d17a, #30b857); }
+.progress-label { margin: 6px 0 0; color: var(--muted); font-size: 0.85rem; }
+
+.btn-link, .btn-primary {
+  display: inline-block;
+  border-radius: 10px;
+  border: none;
+  background: #007aff;
+  color: #fff;
+  padding: 9px 12px;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.status-pending {
-  border-color: var(--status-pending);
-  background-color: #8e8e93;
+.inline-form { margin-top: 10px; }
+
+select, input[type="text"] {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
 }
 
-.status-in-progress {
-  border-color: var(--status-in-progress);
-  background-color: #f4b400;
+.route-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.route-list li {
+  display: flex;
+  justify-content: space-between;
+  background: #f9f9fb;
+  padding: 10px;
+  border-radius: 10px;
 }
-
-.status-blocked {
-  border-color: var(--status-blocked);
-  background-color: #e94238;
-}
-
-.status-done {
-  border-color: var(--status-done);
-  background-color: #2eb350;
-}
-
-.batch-card.status-pending,
-.batch-card.status-in-progress,
-.batch-card.status-blocked,
-.batch-card.status-done {
-  background: var(--card-bg);
-}
-
-.batch-card.status-blocked {
-  box-shadow: 0 3px 14px rgba(233, 66, 56, 0.2);
-}
+.route-done strong { color: var(--done); }
+.route-current { outline: 2px solid #007aff33; }
+.route-current strong { color: #007aff; }
+.route-pending strong { color: var(--pending); }

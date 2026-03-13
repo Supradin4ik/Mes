@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="stack-md">
+  <article class="ios-card detail-card">
+    <h2 class="section-title">{{ project.name }}</h2>
+    <dl class="meta-list">
+      <div><dt>Client</dt><dd>{{ project.client or '-' }}</dd></div>
+      <div><dt>Deadline</dt><dd>{{ project.deadline or '-' }}</dd></div>
+    </dl>
+  </article>
+
+  <section class="stack-sm">
+    <h3 class="section-title">Types</h3>
+    <div class="card-grid">
+      {% for type_item in types %}
+      <article class="ios-card">
+        <h4>{{ type_item.type_name }}</h4>
+        <dl class="meta-list">
+          <div><dt>Quantity plan</dt><dd>{{ type_item.quantity_plan }}</dd></div>
+          <div><dt>Stage size</dt><dd>{{ type_item.stage_size }}</dd></div>
+          <div><dt>Batches</dt><dd>{{ type_item.batch_count }}</dd></div>
+        </dl>
+        <a class="btn-link" href="/types/{{ type_item.id }}">Open TYPE</a>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+</section>
+{% endblock %}

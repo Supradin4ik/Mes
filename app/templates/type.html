@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="stack-md">
+  <article class="ios-card detail-card">
+    <h2 class="section-title">{{ type_item.type_name }}</h2>
+    <dl class="meta-list">
+      <div><dt>Quantity plan</dt><dd>{{ type_item.quantity_plan }}</dd></div>
+      <div><dt>Stage size</dt><dd>{{ type_item.stage_size }}</dd></div>
+    </dl>
+  </article>
+
+  <section class="stack-sm">
+    <h3 class="section-title">Batches</h3>
+    <div class="card-grid">
+      {% for batch in batches %}
+      <a class="ios-card batch-card-link" href="/batch/{{ batch.id }}">
+        <div class="batch-head">
+          <h4>Batch #{{ batch.batch_number }}</h4>
+          <span class="status-pill status-{{ batch.batch_status }}">{{ batch.batch_status_label }}</span>
+        </div>
+        <dl class="meta-list">
+          <div><dt>Quantity</dt><dd>{{ batch.quantity }}</dd></div>
+          <div><dt>Current stage</dt><dd>{{ batch.current_stage }}</dd></div>
+          <div><dt>Blocked</dt><dd>{{ "Yes" if batch.blocked else "No" }}</dd></div>
+          <div><dt>Current location</dt><dd>{{ batch.current_location }}</dd></div>
+        </dl>
+        <div>
+          <p class="muted-text">Progress</p>
+          <div class="progress-track"><span style="width: {{ batch.progress_percent }}%"></span></div>
+          <p class="progress-label">{{ batch.progress_percent }}%</p>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+</section>
+{% endblock %}

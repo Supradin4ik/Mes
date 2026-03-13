@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="stack-md">
+  <h2 class="section-title">Projects</h2>
+  <div class="card-grid">
+    {% for project in projects %}
+    <a class="ios-card project-card" href="/projects/{{ project.id }}">
+      <h3>{{ project.name }}</h3>
+      <dl class="meta-list">
+        <div><dt>Client</dt><dd>{{ project.client or '-' }}</dd></div>
+        <div><dt>Deadline</dt><dd>{{ project.deadline or '-' }}</dd></div>
+        <div><dt>Status</dt><dd><span class="status-pill status-{{ project.status_class }}">{{ project.status_label }}</span></dd></div>
+        <div><dt>TYPE count</dt><dd>{{ project.type_count }}</dd></div>
+      </dl>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
