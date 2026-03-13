@@ -7,6 +7,12 @@
       <div><dt>Quantity plan</dt><dd>{{ type_item.quantity_plan }}</dd></div>
       <div><dt>Stage size</dt><dd>{{ type_item.stage_size }}</dd></div>
     </dl>
+    <div class="button-row">
+      <a class="btn-link" href="/types/{{ type_item.id }}/import-spec">Upload specification</a>
+      <form method="post" action="/types/{{ type_item.id }}/plan-production">
+        <button type="submit" class="btn-primary">{% if has_plan %}Перепланировать{% else %}Планировать производство{% endif %}</button>
+      </form>
+    </div>
   </article>
 
   <section class="stack-sm">
@@ -31,20 +37,32 @@
 
   <section class="stack-sm">
     <h3 class="section-title">Items</h3>
-    <div class="card-grid">
-      {% for item in items %}
-      <a class="ios-card" href="/items/{{ item.id }}">
-        <h4>{{ item.part_number }}</h4>
-        <p class="muted-text">{{ item.name }}</p>
-        <dl class="meta-list">
-          <div><dt>Metal</dt><dd>{{ item.metal or '-' }}</dd></div>
-          <div><dt>Thickness</dt><dd>{{ item.thickness or '-' }}</dd></div>
-          <div><dt>Qty per product</dt><dd>{{ item.qty_per_product or '-' }}</dd></div>
-          <div><dt>Total qty</dt><dd>{{ item.total_qty or '-' }}</dd></div>
-        </dl>
-      </a>
-      {% endfor %}
-    </div>
+    <article class="ios-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Part Number</th>
+            <th>Name</th>
+            <th>Metal</th>
+            <th>Thickness</th>
+            <th>Qty per product</th>
+            <th>Total Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td><a href="/items/{{ item.id }}">{{ item.part_number }}</a></td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.metal or '-' }}</td>
+            <td>{{ item.thickness or '-' }}</td>
+            <td>{{ item.qty_per_product or '-' }}</td>
+            <td>{{ item.total_qty or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </article>
   </section>
 </section>
 {% endblock %}
