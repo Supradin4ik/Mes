@@ -77,3 +77,12 @@ CREATE TABLE IF NOT EXISTS transfers (
     FOREIGN KEY (batch_id) REFERENCES type_batches(id),
     FOREIGN KEY (location_id) REFERENCES locations(id)
 );
+
+CREATE TABLE IF NOT EXISTS blocks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    object_type TEXT,
+    object_id INTEGER,
+    reason TEXT,
+    comment TEXT,
+    status TEXT
+);
