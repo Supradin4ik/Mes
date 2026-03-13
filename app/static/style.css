@@ -108,12 +108,31 @@ body {
 
 .inline-form { margin-top: 10px; }
 
-select, input[type="text"] {
+
+select, input[type="text"], input[type="file"] {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px;
   background: #fff;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.data-table th,
+.data-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 8px;
+  text-align: left;
+}
+
+.data-table th {
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .route-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }

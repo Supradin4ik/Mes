@@ -1,12 +1,13 @@
 import sqlite3
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from app.database.db import get_connection
 from app.routers.view_data import collect_batch_details, quantity_expr
+from app.services.planning_service import recreate_type_plan
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -73,6 +74,7 @@ def get_type_page(type_id: int, request: Request) -> HTMLResponse:
         ).fetchall()
         batch_ids = [row["id"] for row in batches]
         details = collect_batch_details(connection, batch_ids)
+        has_plan = bool(batch_ids)
 
 
         items = connection.execute(
@@ -105,6 +107,7 @@ def get_type_page(type_id: int, request: Request) -> HTMLResponse:
                 "active_page": "projects",
                 "type_item": dict(type_row),
                 "batches": batch_payload,
+                "has_plan": has_plan,
                 "items": [dict(row) for row in items],
                 "breadcrumbs": [
                     {"label": "Projects", "href": "/projects"},
@@ -113,6 +116,32 @@ def get_type_page(type_id: int, request: Request) -> HTMLResponse:
                 ],
             },
         )
+    finally:
+        connection.close()
+
+
+@router.post("/types/{type_id}/plan-production")
+def plan_type_production(type_id: int) -> RedirectResponse:
+    connection = get_connection()
+    connection.row_factory = sqlite3.Row
+
+    try:
+        type_row = connection.execute(
+            "SELECT id, quantity_plan, stage_size FROM types WHERE id = ?",
+            (type_id,),
+        ).fetchone()
+        if type_row is None:
+            raise HTTPException(status_code=404, detail="Type not found")
+
+        recreate_type_plan(
+            connection,
+            type_id=type_id,
+            quantity_plan=type_row["quantity_plan"] or 0,
+            stage_size=type_row["stage_size"] or 0,
+        )
+        connection.commit()
+
+        return RedirectResponse(url=f"/types/{type_id}", status_code=303)
     finally:
         connection.close()
 
