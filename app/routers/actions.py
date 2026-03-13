@@ -17,7 +17,11 @@ def _table_columns(connection: sqlite3.Connection, table_name: str) -> set[str]:
 
 
 @router.post("/batch/{batch_id}/complete-stage")
-def complete_batch_stage(batch_id: int, return_to_board: bool = Form(default=False)):
+def complete_batch_stage(
+    batch_id: int,
+    return_to_board: bool = Form(default=False),
+    return_to_batch: bool = Form(default=False),
+):
     connection = get_connection()
     connection.row_factory = sqlite3.Row
 
@@ -65,6 +69,8 @@ def complete_batch_stage(batch_id: int, return_to_board: bool = Form(default=Fal
 
         if return_to_board:
             return RedirectResponse(url="/board", status_code=303)
+        if return_to_batch:
+            return RedirectResponse(url=f"/batch/{batch_id}", status_code=303)
 
         return JSONResponse({"result": "stage completed", "batch_id": batch_id})
     finally:
@@ -142,6 +148,7 @@ def transfer_batch(
     location_id: int = Form(...),
     comment: str = Form(default=""),
     return_to_board: bool = Form(default=False),
+    return_to_batch: bool = Form(default=False),
 ):
     connection = get_connection()
 
@@ -169,6 +176,8 @@ def transfer_batch(
 
         if return_to_board:
             return RedirectResponse(url="/board", status_code=303)
+        if return_to_batch:
+            return RedirectResponse(url=f"/batch/{batch_id}", status_code=303)
 
         return JSONResponse({"result": "batch transferred", "batch_id": batch_id})
     finally:

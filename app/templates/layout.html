@@ -3,17 +3,36 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ page_title or "MES Production System" }}</title>
+    <title>{{ page_title or "MES System" }}</title>
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
     <header class="site-header">
-      <div class="page-container">
-        <h1>MES Production System</h1>
+      <div class="page-container header-inner">
+        <div>
+          <h1>MES System</h1>
+          <nav class="top-nav" aria-label="Primary">
+            <a href="/projects" class="{% if active_page == 'projects' %}active{% endif %}">Projects</a>
+            <a href="/board" class="{% if active_page == 'board' %}active{% endif %}">Production Board</a>
+          </nav>
+        </div>
       </div>
     </header>
+
     <main class="page-container page-content">
-      {{ content | safe }}
+      {% if breadcrumbs %}
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        {% for crumb in breadcrumbs %}
+          {% if crumb.href %}
+            <a href="{{ crumb.href }}">{{ crumb.label }}</a>
+          {% else %}
+            <span>{{ crumb.label }}</span>
+          {% endif %}
+          {% if not loop.last %}<span class="sep">&gt;</span>{% endif %}
+        {% endfor %}
+      </nav>
+      {% endif %}
+      {% block content %}{% endblock %}
     </main>
   </body>
 </html>

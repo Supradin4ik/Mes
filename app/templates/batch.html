@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="stack-md">
+  <article class="ios-card detail-card">
+    <h2 class="section-title">Batch #{{ batch.batch_number }}</h2>
+    <dl class="meta-list">
+      <div><dt>TYPE</dt><dd>{{ batch.type_name }}</dd></div>
+      <div><dt>Quantity</dt><dd>{{ batch.quantity }}</dd></div>
+      <div><dt>Current stage</dt><dd>{{ batch.current_stage }}</dd></div>
+      <div><dt>Batch status</dt><dd><span class="status-pill status-{{ batch.batch_status }}">{{ batch.batch_status_label }}</span></dd></div>
+      <div><dt>Blocked</dt><dd>{{ 'Yes' if batch.blocked else 'No' }}</dd></div>
+      <div><dt>Block reason</dt><dd>{{ batch.block_reason }}</dd></div>
+    </dl>
+  </article>
+
+  <article class="ios-card">
+    <h3 class="section-title">Route</h3>
+    <ul class="route-list">
+      {% for stage in route_stages %}
+      <li class="route-{{ stage.state }}">
+        <span>{{ stage.stage_name }}</span>
+        <strong>{{ stage.symbol }}</strong>
+      </li>
+      {% endfor %}
+    </ul>
+    <form method="post" action="/batch/{{ batch.id }}/complete-stage" class="inline-form">
+      <input type="hidden" name="return_to_batch" value="true" />
+      <button type="submit" class="btn-primary">Complete Stage</button>
+    </form>
+  </article>
+
+  <article class="ios-card">
+    <h3 class="section-title">Move batch</h3>
+    <form method="post" action="/batch/{{ batch.id }}/transfer" class="stack-sm">
+      <label for="location_id">Select location</label>
+      <select id="location_id" name="location_id" required>
+        {% for location in locations %}
+        <option value="{{ location.id }}">{{ location.name }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="comment" placeholder="Comment" />
+      <input type="hidden" name="return_to_batch" value="true" />
+      <button type="submit" class="btn-primary">Transfer</button>
+    </form>
+  </article>
+</section>
+{% endblock %}

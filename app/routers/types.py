@@ -1,9 +1,15 @@
-from fastapi import APIRouter
+import sqlite3
+
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from app.database.db import get_connection
+from app.routers.view_data import collect_batch_details, quantity_expr
 
 router = APIRouter()
+templates = Jinja2Templates(directory="app/templates")
 
 
 class TypeCreate(BaseModel):
@@ -34,6 +40,67 @@ def get_types() -> list[dict[str, int | str]]:
             }
             for row in rows
         ]
+    finally:
+        connection.close()
+
+
+@router.get("/types/{type_id}", response_class=HTMLResponse)
+def get_type_page(type_id: int, request: Request) -> HTMLResponse:
+    connection = get_connection()
+    connection.row_factory = sqlite3.Row
+
+    try:
+        type_row = connection.execute(
+            """
+            SELECT t.id, t.project_id, t.type_name, t.quantity_plan, t.stage_size, p.name AS project_name
+            FROM types t
+            JOIN projects p ON p.id = t.project_id
+            WHERE t.id = ?
+            """,
+            (type_id,),
+        ).fetchone()
+        if type_row is None:
+            raise HTTPException(status_code=404, detail="Type not found")
+
+        batches = connection.execute(
+            f"""
+            SELECT id, batch_number, {quantity_expr(connection)} AS quantity
+            FROM type_batches
+            WHERE type_id = ?
+            ORDER BY batch_number, id
+            """,
+            (type_id,),
+        ).fetchall()
+        batch_ids = [row["id"] for row in batches]
+        details = collect_batch_details(connection, batch_ids)
+
+        batch_payload = []
+        for row in batches:
+            info = details.get(row["id"], {})
+            batch_payload.append(
+                {
+                    "id": row["id"],
+                    "batch_number": row["batch_number"],
+                    "quantity": row["quantity"],
+                    **info,
+                }
+            )
+
+        return templates.TemplateResponse(
+            "type.html",
+            {
+                "request": request,
+                "page_title": type_row["type_name"],
+                "active_page": "projects",
+                "type_item": dict(type_row),
+                "batches": batch_payload,
+                "breadcrumbs": [
+                    {"label": "Projects", "href": "/projects"},
+                    {"label": type_row["project_name"], "href": f"/projects/{type_row['project_id']}"},
+                    {"label": type_row["type_name"], "href": None},
+                ],
+            },
+        )
     finally:
         connection.close()
 
