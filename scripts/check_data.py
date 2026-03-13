@@ -18,6 +18,9 @@ def main() -> None:
         cursor.execute("SELECT * FROM items")
         items_rows = cursor.fetchall()
 
+        cursor.execute("SELECT * FROM routes")
+        routes_rows = cursor.fetchall()
+
         print("Projects:")
         for row in projects:
             print(row)
@@ -30,9 +33,14 @@ def main() -> None:
         for row in items_rows:
             print(row)
 
+        print("\nRoutes:")
+        for row in routes_rows:
+            print(row)
+
         print(f"\nКоличество проектов: {len(projects)}")
         print(f"Количество types: {len(types_rows)}")
         print(f"Количество items: {len(items_rows)}")
+        print(f"Количество routes: {len(routes_rows)}")
     finally:
         connection.close()
 
