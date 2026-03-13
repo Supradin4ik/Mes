@@ -16,6 +16,7 @@ TARGET_TABLES = {
     "batch_item_stages",
     "transfers",
     "locations",
+    "blocks",
 }
 
 

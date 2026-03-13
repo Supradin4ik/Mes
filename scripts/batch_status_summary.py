@@ -23,6 +23,41 @@ def get_quantity_column(connection: sqlite3.Connection) -> str | None:
     return None
 
 
+def table_exists(connection: sqlite3.Connection, table_name: str) -> bool:
+    row = connection.execute(
+        """
+        SELECT 1
+        FROM sqlite_master
+        WHERE type = 'table' AND name = ?
+        """,
+        (table_name,),
+    ).fetchone()
+    return row is not None
+
+
+def get_active_batch_blocks(connection: sqlite3.Connection) -> dict[int, sqlite3.Row]:
+    if not table_exists(connection, "blocks"):
+        return {}
+
+    rows = connection.execute(
+        """
+        SELECT id, object_id, reason
+        FROM blocks
+        WHERE object_type = 'type_batch' AND status = 'active'
+        ORDER BY id
+        """
+    ).fetchall()
+
+    by_batch: dict[int, sqlite3.Row] = {}
+    for row in rows:
+        object_id = row["object_id"]
+        if object_id is None or object_id in by_batch:
+            continue
+        by_batch[object_id] = row
+
+    return by_batch
+
+
 def resolve_batch_stage_info(stages: list[sqlite3.Row]) -> tuple[str, str]:
     """
     Determine current_stage and batch_status from stage rows.
@@ -83,6 +118,7 @@ def print_batch_status_summary(connection: sqlite3.Connection) -> None:
         ORDER BY batch_item_id, id
         """
     ).fetchall()
+    active_blocks_by_batch = get_active_batch_blocks(connection)
 
     batch_item_ids_by_batch: dict[int, list[int]] = defaultdict(list)
     for batch_item in batch_items:
@@ -111,10 +147,18 @@ def print_batch_status_summary(connection: sqlite3.Connection) -> None:
 
         current_stage, batch_status = resolve_batch_stage_info(batch_stages)
 
+        active_block = active_blocks_by_batch.get(batch_id)
+        blocked = active_block is not None
+        if blocked:
+            batch_status = "blocked"
+
         print(f"BATCH {batch_number if batch_number is not None else 'unknown'}")
         print(f"- quantity: {quantity_text}")
         print(f"- current_stage: {current_stage}")
         print(f"- batch_status: {batch_status}")
+        print(f"- blocked: {'yes' if blocked else 'no'}")
+        if blocked:
+            print(f"- block_reason: {active_block['reason']}")
         print()
 
 
