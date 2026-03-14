@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 import sqlite3
 from collections import defaultdict
 
@@ -20,7 +19,7 @@ def _build_batches(quantity_plan: int, stage_size: int) -> list[int]:
     batches: list[int] = []
     remaining = quantity_plan
     while remaining > 0:
-        current = stage_size if remaining >= stage_size else remaining
+        current = min(stage_size, remaining)
         batches.append(current)
         remaining -= current
     return batches
@@ -34,6 +33,19 @@ def ensure_types_done_manual_column(connection: sqlite3.Connection) -> None:
     if "done_manual" in _columns(connection, "types"):
         return
     connection.execute("ALTER TABLE types ADD COLUMN done_manual INTEGER DEFAULT 0")
+
+
+def recalculate_items_total_qty(connection: sqlite3.Connection, *, type_id: int, quantity_plan: int) -> int:
+    """Recalculate total_qty for all items in a type using qty_per_product × quantity_plan."""
+    connection.execute(
+        """
+        UPDATE items
+        SET total_qty = COALESCE(qty_per_product, 0) * ?
+        WHERE type_id = ?
+        """,
+        (max(quantity_plan, 0), type_id),
+    )
+    return connection.execute("SELECT changes()").fetchone()[0]
 
 
 def recreate_type_plan(
@@ -89,6 +101,21 @@ def recreate_type_plan(
     created_batch_items = 0
     created_batch_stages = 0
 
+    routes_by_item: dict[int, list[str]] = {}
+    for item_id, _ in items:
+        routes_by_item[item_id] = [
+            row[0]
+            for row in connection.execute(
+                """
+                SELECT stage_name
+                FROM routes
+                WHERE item_id = ?
+                ORDER BY order_index, id
+                """,
+                (item_id,),
+            ).fetchall()
+        ]
+
     for idx, batch_qty in enumerate(batches, start=1):
         batch_cursor = connection.execute(
             """
@@ -112,23 +139,13 @@ def recreate_type_plan(
             batch_item_id = batch_item_cursor.lastrowid
             created_batch_items += 1
 
-            routes = connection.execute(
-                """
-                SELECT stage_name
-                FROM routes
-                WHERE item_id = ?
-                ORDER BY order_index, id
-                """,
-                (item_id,),
-            ).fetchall()
-
-            for route in routes:
+            for stage_name in routes_by_item[item_id]:
                 connection.execute(
                     """
                     INSERT INTO batch_item_stages (batch_item_id, stage_name, status)
                     VALUES (?, ?, 'pending')
                     """,
-                    (batch_item_id, route[0]),
+                    (batch_item_id, stage_name),
                 )
                 created_batch_stages += 1
 
@@ -139,33 +156,13 @@ def recreate_type_plan(
     }
 
 
-def _material_status(qty_completed: int, qty_required: int, no_metal: bool) -> tuple[str, str]:
-    if no_metal:
-        return "blocked", STATUS_LABELS["blocked"]
-    if qty_completed >= qty_required and qty_required > 0:
-        return "done", STATUS_LABELS["done"]
-    if qty_completed == 0:
-        return "pending", STATUS_LABELS["pending"]
-    return "pending", STATUS_LABELS["pending"]
-
-
-def _stage_status_from_materials(statuses: list[str], fallback_batch_status: str) -> tuple[str, str]:
-    if any(status == "blocked" for status in statuses):
-        return "blocked", STATUS_LABELS["blocked"]
-    if statuses and all(status == "done" for status in statuses):
-        return "done", STATUS_LABELS["done"]
-    if any(status == "pending" for status in statuses):
-        return "pending", STATUS_LABELS["pending"]
-    mapped = fallback_batch_status if fallback_batch_status in STATUS_LABELS else "pending"
-    return mapped, STATUS_LABELS[mapped]
-
-
 def get_type_planning_data(connection: sqlite3.Connection, type_id: int) -> dict[str, object]:
     ensure_types_done_manual_column(connection)
 
     type_row = connection.execute(
         """
-        SELECT id, type_name, quantity_plan, stage_size, COALESCE(done_manual, 0) AS done_manual
+        SELECT id, type_name, COALESCE(quantity_plan, 0) AS quantity_plan, COALESCE(stage_size, 0) AS stage_size,
+               COALESCE(done_manual, 0) AS done_manual
         FROM types
         WHERE id = ?
         """,
@@ -251,7 +248,14 @@ def get_type_planning_data(connection: sqlite3.Connection, type_id: int) -> dict
     for batch_item in batch_items:
         material_key = material_label_by_item.get(batch_item["item_id"], "- 0")
         is_blocked = batch_item["id"] in no_metal_item_blocks or batch_item["batch_id"] in no_metal_batch_blocks
-        status_key, _ = _material_status(batch_item["qty_completed"], batch_item["qty_required"], is_blocked)
+        if is_blocked:
+            status_key = "blocked"
+        elif batch_item["qty_required"] > 0 and batch_item["qty_completed"] >= batch_item["qty_required"]:
+            status_key = "done"
+        elif batch_item["qty_completed"] > 0:
+            status_key = "in_progress"
+        else:
+            status_key = "pending"
         statuses_by_material_batch[(material_key, batch_item["batch_id"])].append(status_key)
 
     material_rows = []
@@ -263,6 +267,8 @@ def get_type_planning_data(connection: sqlite3.Connection, type_id: int) -> dict
                 status_key = "blocked"
             elif status_list and all(status == "done" for status in status_list):
                 status_key = "done"
+            elif any(status == "in_progress" for status in status_list):
+                status_key = "in_progress"
             else:
                 status_key = "pending"
 
@@ -272,37 +278,30 @@ def get_type_planning_data(connection: sqlite3.Connection, type_id: int) -> dict
     stage_rows = []
     done_stages = 0
     for batch in batches:
-        material_statuses = []
-        for material in material_rows:
-            cell = next((c for c in material["cells"] if c["batch_id"] == batch["id"]), None)
-            if cell:
-                material_statuses.append(cell["status_key"])
-        stage_key, stage_label = _stage_status_from_materials(material_statuses, batch["status"])
-
-        if stage_key == "done":
+        batch_status = batch["status"] if batch["status"] in STATUS_LABELS else "pending"
+        if batch_status == "done":
             done_stages += batch["qty_planned"]
-
         stage_rows.append(
             {
                 "batch_id": batch["id"],
                 "batch_number": batch["batch_number"],
                 "qty_planned": batch["qty_planned"],
-                "status_key": stage_key,
-                "status_label": stage_label,
+                "status_key": batch_status,
+                "status_label": STATUS_LABELS[batch_status],
             }
         )
 
-    quantity_plan = type_row["quantity_plan"] or 0
-    done_manual = type_row["done_manual"] or 0
+    quantity_plan = type_row["quantity_plan"]
+    done_manual = type_row["done_manual"]
     done_total = done_stages + done_manual
     remaining = max(quantity_plan - done_total, 0)
-    progress_percent = int(math.floor((done_total / quantity_plan) * 100)) if quantity_plan > 0 else 0
+    progress_percent = round((done_total / quantity_plan) * 100, 2) if quantity_plan > 0 else 0
 
     return {
         "type_id": type_row["id"],
         "type_name": type_row["type_name"],
         "quantity_plan": quantity_plan,
-        "stage_size": type_row["stage_size"] or 0,
+        "stage_size": type_row["stage_size"],
         "done_manual": done_manual,
         "done_stages": done_stages,
         "done_total": done_total,
