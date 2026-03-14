@@ -4,8 +4,9 @@
   <article class="ios-card detail-card">
     <h2 class="section-title">{{ type_item.type_name }}</h2>
     <dl class="meta-list">
-      <div><dt>Quantity plan</dt><dd>{{ type_item.quantity_plan }}</dd></div>
-      <div><dt>Stage size</dt><dd>{{ type_item.stage_size }}</dd></div>
+      <div><dt>Quantity plan</dt><dd>{{ planning.quantity_plan if planning else type_item.quantity_plan }}</dd></div>
+      <div><dt>Stage size</dt><dd>{{ planning.stage_size if planning else type_item.stage_size }}</dd></div>
+      <div><dt>Done manual</dt><dd>{{ planning.done_manual if planning else 0 }}</dd></div>
     </dl>
     <div class="button-row">
       <a class="btn-link" href="/types/{{ type_item.id }}/import-spec">Upload specification</a>

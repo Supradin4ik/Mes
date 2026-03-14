@@ -1,28 +1,25 @@
 <section class="stack-sm">
   <article class="ios-card">
     <h3 class="section-title">ПЛАНИРОВАНИЕ ПРОИЗВОДСТВА</h3>
-    <form method="post" action="/types/{{ type_item.id }}/planning/update" class="planning-form">
+    <form method="post" action="/types/{{ type_item.id }}/update-plan" class="planning-form">
       <label>
-        Количество изделий (quantity_plan)
+        План изделий
         <input type="number" name="quantity_plan" min="0" value="{{ planning.quantity_plan }}" required />
       </label>
       <label>
-        Размер этапа (stage_size)
+        Размер этапа
         <input type="number" name="stage_size" min="0" value="{{ planning.stage_size }}" required />
       </label>
       <label>
-        Готово вручную (done_manual)
+        Готово вручную
         <input type="number" name="done_manual" min="0" value="{{ planning.done_manual }}" required />
       </label>
       <div class="button-row">
-        <button type="submit" class="btn-primary">Обновить расчёт</button>
+        <button type="submit" class="btn-primary">Сохранить план</button>
       </div>
     </form>
     <div class="button-row">
-      <form method="post" action="/types/{{ type_item.id }}/plan-production">
-        <button type="submit" class="btn-primary">Планировать производство</button>
-      </form>
-      <form method="post" action="/types/{{ type_item.id }}/planning/replan">
+      <form method="post" action="/types/{{ type_item.id }}/replan">
         <button type="submit" class="btn-primary">Перепланировать</button>
       </form>
     </div>
@@ -49,7 +46,7 @@
         </thead>
         <tbody>
           <tr>
-            <td class="sticky-col">Количество изделий в этапе</td>
+            <td class="sticky-col">Количество изделий</td>
             {% for stage in planning.stages %}
             <td>{{ stage.qty_planned }}</td>
             {% endfor %}
